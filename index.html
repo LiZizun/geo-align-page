@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>项目名称 - 论文主页</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-purple: #9d4edd;
+            --bg-color: #050505;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: var(--bg-color);
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        .bg-grid {
+            background-image:
+                linear-gradient(rgba(0, 243, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .glow-text {
+            background: linear-gradient(135deg, #00f3ff, #9d4edd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
+        }
+
+        .glass-card {
+            background: rgba(20, 20, 25, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(0, 243, 255, 0.15);
+            border-color: rgba(0, 243, 255, 0.3);
+        }
+
+        .neon-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 28px;
+            background: rgba(0, 243, 255, 0.05);
+            color: #00f3ff;
+            border: 1px solid rgba(0, 243, 255, 0.5);
+            border-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .neon-btn:hover {
+            background: rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4), inset 0 0 10px rgba(0, 243, 255, 0.2);
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+        }
+
+        .author-link {
+            color: #ccc;
+            transition: color 0.2s, text-shadow 0.2s;
+        }
+
+        .author-link:hover {
+            color: #00f3ff;
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.6);
+        }
+
+        .media-container {
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .media-container video,
+        .media-container img {
+            width: 100%;
+            display: block;
+        }
+
+        .results-meta {
+            max-width: 760px;
+            margin: 0 auto 28px;
+            text-align: center;
+        }
+
+        .results-compare-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .showcase-compare-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .showcase-list {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .result-model-panel {
+            padding: 18px;
+        }
+
+        .result-model-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+            color: #f3f4f6;
+            font-weight: 600;
+        }
+
+        .result-model-label.no-tag {
+            justify-content: flex-start;
+        }
+
+        .result-model-tag {
+            color: #7dd3fc;
+            font-size: 0.78rem;
+            font-family: "JetBrains Mono", monospace;
+            text-transform: uppercase;
+        }
+
+        .result-media-shell {
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                linear-gradient(135deg, rgba(0, 243, 255, 0.08), rgba(157, 78, 221, 0.08)),
+                #020202;
+        }
+
+        .result-media-shell video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .results-carousel-shell {
+            overflow: hidden;
+            position: relative;
+            touch-action: pan-y;
+        }
+
+        .results-track {
+            display: flex;
+            transition: transform 0.45s ease;
+            will-change: transform;
+        }
+
+        .results-page {
+            min-width: 100%;
+            flex: 0 0 100%;
+        }
+
+        .carousel-footer {
+            max-width: 960px;
+            margin: 24px auto 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .carousel-nav-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .carousel-page-indicator {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 8px;
+            color: #d1d5db;
+            font-family: "JetBrains Mono", monospace;
+            min-width: 86px;
+            justify-content: center;
+        }
+
+        .carousel-page-indicator strong {
+            color: #fff;
+            font-size: 1.2rem;
+        }
+
+        .results-nav-btn {
+            width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            border: 1px solid rgba(0, 243, 255, 0.25);
+            background: rgba(255, 255, 255, 0.04);
+            color: #e5e7eb;
+            transition: all 0.25s ease;
+        }
+
+        .results-nav-btn:hover {
+            color: #00f3ff;
+            border-color: rgba(0, 243, 255, 0.6);
+            background: rgba(0, 243, 255, 0.12);
+            box-shadow: 0 0 18px rgba(0, 243, 255, 0.18);
+        }
+
+        .results-dots {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .results-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            border: none;
+            background: rgba(255, 255, 255, 0.18);
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .results-dot.is-active {
+            width: 28px;
+            background: linear-gradient(135deg, #00f3ff, #9d4edd);
+            box-shadow: 0 0 14px rgba(0, 243, 255, 0.28);
+        }
+
+        @media (max-width: 768px) {
+            .results-compare-grid,
+            .showcase-compare-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .carousel-nav-row {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-white">
+    <div class="bg-grid"></div>
+
+    <main class="max-w-7xl mx-auto px-6 py-20">
+        <header class="text-center mb-20">
+            <h1 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight glow-text">
+                Geo-Align: Video Generation Alignment via Metric Geometry Reward
+            </h1>
+            <p class="text-xl md:text-2xl font-light text-gray-300 mb-8"></p>
+
+            <div class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-lg md:text-xl font-semibold mb-4 text-white">
+                <span>Zizun Li<sup class="text-sm ml-1">1,2</sup></span>
+                <span>Haoyu Guo<sup class="text-sm ml-1">2,*</sup></span>
+                <span>Runzhe Teng<sup class="text-sm ml-1">1,2</sup></span>
+                <span>Chunhua Shen<sup class="text-sm ml-1">2,3</sup></span>
+                <span>Tong He<sup class="text-sm ml-1">2</sup></span>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-x-8 gap-y-2 text-base md:text-lg text-gray-300 mb-3">
+                <span><sup class="text-xs mr-1">1</sup>USTC</span>
+                <span><sup class="text-xs mr-1">2</sup>Shanghai AI Lab</span>
+                <span><sup class="text-xs mr-1">3</sup>ZJU</span>
+            </div>
+
+            <p class="text-center text-sm text-gray-400 mb-10">
+                * Corresponding author.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="#" class="neon-btn">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+                    </svg>
+                    Code
+                </a>
+                <a href="#" class="neon-btn">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Paper
+                </a>
+            </div>
+        </header>
+
+        <section class="mb-20">
+            <div class="glass-card p-4">
+                <div class="media-container flex items-center justify-center">
+                    <img src="teaser.jpg" alt="主视觉 Demo" />
+                </div>
+            </div>
+            <p class="text-center text-gray-400 mt-5 text-sm md:text-base">
+                Given a conditioning video, Geo-Align synthesizes a novel view video according to the target camera trajectory.
+            </p>
+        </section>
+
+        <section class="mb-20 glass-card p-8 md:p-12 relative overflow-hidden">
+            <div class="absolute -top-10 -left-10 w-32 h-32 bg-cyan-500 rounded-full mix-blend-screen filter blur-3xl opacity-20"></div>
+
+            <h2 class="text-3xl font-bold mb-6 text-white flex items-center">
+                <span class="w-2 h-8 bg-cyan-400 mr-4 rounded-full"></span>
+                Abstract
+            </h2>
+            <div class="text-gray-300 leading-relaxed text-lg space-y-4 relative z-10">
+                <p>
+                    Camera-controlled video generation has achieved remarkable progress in recent years. However, existing video-to-video re-rendering methods primarily rely on Supervised Fine-Tuning using synthetic datasets. At present, there is an extreme scarcity of synchronized, multi-view real-world video data. Consequently, the prevailing paradigm often exhibits limited generalization when processing out-of-distribution real-world videos, with models struggling to accurately adhere to physical scales and camera trajectories. To bridge this gap, we propose Geo-Align, the first Reinforcement Learning framework specifically designed for camera-controlled video re-rendering. Built upon a pretrained model, we optimize the model through a scale-aware perceptual reward mechanism. Specifically, we introduce a metric 3D estimator to extract precise camera trajectories from generated videos, explicitly penalizing deviations in rotation and translation. Furthermore, we meticulously designed a data pipeline strategy based on real-world conditioning videos and target camera trajectories derived from synthetic data, eliminating the reliance on paired data. Extensive experiments demonstrate that Geo-Align consistently outperforms existing supervised learning baselines in both precise camera controllability and visual fidelity, indicating the effectiveness of our method.
+                </p>
+            </div>
+        </section>
+
+        <section class="mb-20">
+            <h2 class="text-3xl font-bold mb-10 text-center text-white tracking-wide">Architecture Overview</h2>
+            <div class="glass-card p-6">
+                <div class="media-container flex items-center justify-center">
+                    <img src="pipeline.jpg" alt="pipeline" />
+                </div>
+                <p class="mt-6 max-w-5xl mx-auto text-gray-400 leading-relaxed text-center px-4">
+                    Geo-Align pipeline: Given a conditioning video, we sample a camera trajectory from
+                    other camera-annotated data and scale it to a plausible range, with the scaling factor drawn from
+                    a truncated Gaussian distribution. After the model generates a set of rollout videos, a metric 3D
+                    evaluator assesses the camera trajectory of each sample to compute geometry rewards. Finally, the
+                    model is optimized via Group Relative Policy Optimization
+                </p>
+            </div>
+        </section>
+
+        <section class="mb-20" id="reported-results">
+            <div class="results-meta">
+                <h2 class="text-3xl font-bold text-white tracking-wide">Reported Results</h2>
+            </div>
+
+            <div class="results-carousel-shell" id="reportedResultsShell">
+                <div class="results-track" id="reportedResultsTrack"></div>
+            </div>
+
+            <div class="carousel-footer">
+                <div class="carousel-nav-row">
+                    <button id="reportedResultsPrevBtn" class="results-nav-btn" type="button" aria-label="上一页">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                    </button>
+
+                    <div class="carousel-page-indicator">
+                        <strong id="reportedResultsCurrentPage">01</strong>
+                        <span>/</span>
+                        <span id="reportedResultsTotalPages">08</span>
+                    </div>
+
+                    <button id="reportedResultsNextBtn" class="results-nav-btn" type="button" aria-label="下一页">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6l6 6-6 6"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="results-dots" id="reportedResultsDots"></div>
+            </div>
+        </section>
+
+        <section class="mb-20" id="geo-align-showcase">
+            <div class="results-meta">
+                <h2 class="text-3xl font-bold text-white tracking-wide">Geo-Align Showcase</h2>
+            </div>
+
+            <div id="showcaseList" class="showcase-list"></div>
+        </section>
+
+        <section class="mb-20">
+            <h2 class="text-2xl font-bold mb-6 text-white">BibTeX</h2>
+            <div class="glass-card p-6 relative group">
+                <button class="absolute top-4 right-4 text-gray-500 hover:text-cyan-400 transition-colors" type="button">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </button>
+<pre class="text-sm text-gray-400 font-mono overflow-x-auto whitespace-pre-wrap selection:bg-cyan-900"><code>@article{yourproject2026,
+  title={Project Name: Your Full Paper Title Here},
+  author={Lastname, Firstname and Lastname, Firstname},
+  journal={arXiv preprint arXiv:XXXX.XXXXX},
+  year={2026}
+}</code></pre>
+            </div>
+        </section>
+
+        <footer class="text-center border-t border-white/10 pt-8 pb-4">
+            <p class="text-gray-500 text-sm font-mono">
+                © 2026 Your Name / Team. All Rights Reserved.
+            </p>
+        </footer>
+    </main>
+
+    <script>
+        const reportedResultsPages = [
+            {
+                input: "demo_video/kite-walk.mp4",
+                methodA: "demo_video/kite-walk_camera_9_speed_1_rec.mp4",
+                methodB: "demo_video/kite-walk_camera_9_speed_1_red.mp4",
+                ours: "demo_video/kite-walk_camera_9_speed_1.mp4"
+            },
+            {
+                input: "demo_video/dance-jump.mp4",
+                methodA: "demo_video/dance-jump_camera_7_speed_2_rec.mp4",
+                methodB: "demo_video/dance-jump_camera_7_speed_2_red.mp4",
+                ours: "demo_video/dance-jump_camera_7_speed_2.mp4"
+            },
+            {
+                input: "demo_video/dog-gooses.mp4",
+                methodA: "demo_video/dog-gooses_camera_6_speed_1_rec.mp4",
+                methodB: "demo_video/dog-gooses_camera_6_speed_1_red.mp4",
+                ours: "demo_video/dog-gooses_camera_6_speed_1.mp4"
+            },
+            {
+                input: "demo_video/elephant.mp4",
+                methodA: "demo_video/elephant_camera_5_speed_2_rec.mp4",
+                methodB: "demo_video/elephant_camera_5_speed_2_red.mp4",
+                ours: "demo_video/elephant_camera_5_speed_2.mp4"
+            },
+            {
+                input: "demo_video/horsejump-low.mp4",
+                methodA: "demo_video/horsejump-low_camera_9_speed_2_rec.mp4",
+                methodB: "demo_video/horsejump-low_camera_9_speed_2_red.mp4",
+                ours: "demo_video/horsejump-low_camera_9_speed_2.mp4"
+            },
+            {
+                input: "demo_video/stunt.mp4",
+                methodA: "demo_video/stunt_camera_1_speed_1_rec.mp4",
+                methodB: "demo_video/stunt_camera_1_speed_1_red.mp4",
+                ours: "demo_video/stunt_camera_1_speed_1.mp4"
+            },
+            {
+                input: "demo_video/car-turn.mp4",
+                methodA: "demo_video/car-turn_camera_10_speed_15_rec.mp4",
+                methodB: "demo_video/car-turn_camera_10_speed_15_red.mp4",
+                ours: "demo_video/car-turn_camera_10_speed_15.mp4"
+            },
+            {
+                input: "demo_video/swing.mp4",
+                methodA: "demo_video/swing_camera_10_speed_2_rec.mp4",
+                methodB: "demo_video/swing_camera_10_speed_2_red.mp4",
+                ours: "demo_video/swing_camera_10_speed_2.mp4"
+            }
+        ];
+
+        const showcaseRows = [
+            {
+                conditioning: "more_vis/demo1_input.mp4",
+                geoAlign: "more_vis/demo1_ours.mp4"
+            },
+            {
+                conditioning: "more_vis/demo2_input.mp4",
+                geoAlign: "more_vis/demo2_ours.mp4"
+            },
+            {
+                conditioning: "more_vis/demo5_input.mp4",
+                geoAlign: "more_vis/demo5_ours.mp4"
+            },
+            {
+                conditioning: "more_vis/demo6_input.mp4",
+                geoAlign: "more_vis/demo6_ours.mp4"
+            },
+            {
+                conditioning: "more_vis/demo7_input.mp4",
+                geoAlign: "more_vis/demo7_ours.mp4"
+            },
+            {
+                conditioning: "more_vis/demo8_input.mp4",
+                geoAlign: "more_vis/demo8_ours.mp4"
+            },
+            {
+                conditioning: "more_vis/demo9_input.mp4",
+                geoAlign: "more_vis/demo9_ours.mp4"
+            },
+            {
+                conditioning: "more_vis/demo10_input.mp4",
+                geoAlign: "more_vis/demo10_ours.mp4"
+            },
+            {
+                conditioning: "more_vis/demo11_input.mp4",
+                geoAlign: "more_vis/demo11_ours.mp4"
+            },
+            {
+                conditioning: "more_vis/demo12_input.mp4",
+                geoAlign: "more_vis/demo12_ours.mp4"
+            },
+            {
+                conditioning: "more_vis/demo13_input.mp4",
+                geoAlign: "more_vis/demo13_ours.mp4"
+            },
+            {
+                conditioning: "more_vis/demo14_input.mp4",
+                geoAlign: "more_vis/demo14_ours.mp4"
+            },
+            {
+                conditioning: "more_vis/demo15_input.mp4",
+                geoAlign: "more_vis/demo15_ours.mp4"
+            }
+        ];
+
+        function buildVideoCard(title, tag, src, showTag = true) {
+            return `
+                <div class="glass-card result-model-panel">
+                    <div class="result-model-label${showTag ? "" : " no-tag"}">
+                        <span>${title}</span>
+                        ${showTag ? `<span class="result-model-tag">${tag}</span>` : ""}
+                    </div>
+                    <div class="media-container result-media-shell">
+                        <video class="result-video" controls autoplay muted loop playsinline preload="none">
+                            <source data-src="${src}" type="video/mp4" />
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildReportedPage(page) {
+            return `
+                <article class="results-page">
+                    <div class="results-compare-grid">
+                        ${buildVideoCard("Conditioning Video", "Input", page.input, false)}
+                        ${buildVideoCard("ReCamMaster", "Method A", page.methodA, false)}
+                        ${buildVideoCard("ReDirector", "Method B", page.methodB, false)}
+                        ${buildVideoCard("Geo-Align", "Ours", page.ours, false)}
+                    </div>
+                </article>
+            `;
+        }
+
+        function buildShowcaseRow(page) {
+            return `
+                <div class="showcase-compare-grid">
+                    ${buildVideoCard("Conditioning Video", "Input", page.conditioning, false)}
+                    ${buildVideoCard("Geo-Align", "Ours", page.geoAlign, false)}
+                </div>
+            `;
+        }
+
+        function initCarousel(config) {
+            const track = document.getElementById(config.trackId);
+            const dots = document.getElementById(config.dotsId);
+            const currentPageEl = document.getElementById(config.currentPageId);
+            const totalPagesEl = document.getElementById(config.totalPagesId);
+            const prevBtn = document.getElementById(config.prevBtnId);
+            const nextBtn = document.getElementById(config.nextBtnId);
+            const shell = document.getElementById(config.shellId);
+            const section = document.getElementById(config.sectionId);
+
+            let currentIndex = 0;
+            let touchStartX = 0;
+            let isInView = true;
+
+            function hydrateVideo(video) {
+                const source = video.querySelector("source");
+                if (source && !source.getAttribute("src")) {
+                    source.setAttribute("src", source.dataset.src);
+                    video.load();
+                }
+            }
+
+            function preloadPage(pageIndex) {
+                const page = track.children[pageIndex];
+                if (!page) return;
+                page.querySelectorAll(".result-video").forEach(hydrateVideo);
+            }
+
+            function pauseAllVideos() {
+                track.querySelectorAll(".result-video").forEach(function (video) {
+                    video.pause();
+                });
+            }
+
+            function syncVideos() {
+                preloadPage(currentIndex);
+                preloadPage((currentIndex + 1) % config.pages.length);
+
+                Array.from(track.children).forEach(function (page, pageIndex) {
+                    page.querySelectorAll(".result-video").forEach(function (video) {
+                        if (pageIndex === currentIndex && isInView && !document.hidden) {
+                            hydrateVideo(video);
+                            const playPromise = video.play();
+                            if (playPromise) {
+                                playPromise.catch(function () {});
+                            }
+                        } else {
+                            video.pause();
+                            try {
+                                video.currentTime = 0;
+                            } catch (e) {}
+                        }
+                    });
+                });
+            }
+
+            function goToPage(index) {
+                currentIndex = (index + config.pages.length) % config.pages.length;
+                track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                currentPageEl.textContent = String(currentIndex + 1).padStart(2, "0");
+
+                Array.from(dots.children).forEach(function (dot, dotIndex) {
+                    dot.classList.toggle("is-active", dotIndex === currentIndex);
+                });
+
+                syncVideos();
+            }
+
+            track.innerHTML = config.pages.map(config.renderPage).join("");
+            dots.innerHTML = config.pages.map(function (_, index) {
+                const activeClass = index === 0 ? " is-active" : "";
+                return `<button type="button" class="results-dot${activeClass}" data-index="${index}" aria-label="Go to page ${index + 1}"></button>`;
+            }).join("");
+
+            totalPagesEl.textContent = String(config.pages.length).padStart(2, "0");
+
+            prevBtn.addEventListener("click", function () {
+                goToPage(currentIndex - 1);
+            });
+
+            nextBtn.addEventListener("click", function () {
+                goToPage(currentIndex + 1);
+            });
+
+            dots.addEventListener("click", function (event) {
+                const button = event.target.closest(".results-dot");
+                if (!button) return;
+                goToPage(Number(button.dataset.index));
+            });
+
+            shell.addEventListener("touchstart", function (event) {
+                touchStartX = event.changedTouches[0].clientX;
+            }, { passive: true });
+
+            shell.addEventListener("touchend", function (event) {
+                const deltaX = event.changedTouches[0].clientX - touchStartX;
+                if (Math.abs(deltaX) < 60) return;
+                goToPage(currentIndex + (deltaX < 0 ? 1 : -1));
+            }, { passive: true });
+
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    isInView = entry.isIntersecting;
+                    if (isInView) {
+                        syncVideos();
+                    } else {
+                        pauseAllVideos();
+                    }
+                });
+            }, {
+                threshold: 0.2
+            });
+
+            observer.observe(section);
+
+            document.addEventListener("visibilitychange", function () {
+                if (document.hidden) {
+                    pauseAllVideos();
+                } else {
+                    syncVideos();
+                }
+            });
+
+            goToPage(0);
+        }
+
+        function initShowcaseList() {
+            const list = document.getElementById("showcaseList");
+            list.innerHTML = showcaseRows.map(buildShowcaseRow).join("");
+
+            const showcaseVideos = list.querySelectorAll(".result-video");
+
+            function hydrateVideo(video) {
+                const source = video.querySelector("source");
+                if (source && !source.getAttribute("src")) {
+                    source.setAttribute("src", source.dataset.src);
+                    video.load();
+                }
+            }
+
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    const video = entry.target;
+
+                    if (entry.isIntersecting && !document.hidden) {
+                        hydrateVideo(video);
+                        const playPromise = video.play();
+                        if (playPromise) {
+                            playPromise.catch(function () {});
+                        }
+                    } else {
+                        video.pause();
+                    }
+                });
+            }, {
+                threshold: 0.35
+            });
+
+            showcaseVideos.forEach(function (video) {
+                observer.observe(video);
+            });
+
+            document.addEventListener("visibilitychange", function () {
+                if (document.hidden) {
+                    showcaseVideos.forEach(function (video) {
+                        video.pause();
+                    });
+                } else {
+                    showcaseVideos.forEach(function (video) {
+                        const rect = video.getBoundingClientRect();
+                        const isVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+
+                        if (isVisible) {
+                            hydrateVideo(video);
+                            const playPromise = video.play();
+                            if (playPromise) {
+                                playPromise.catch(function () {});
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        initCarousel({
+            sectionId: "reported-results",
+            shellId: "reportedResultsShell",
+            trackId: "reportedResultsTrack",
+            dotsId: "reportedResultsDots",
+            currentPageId: "reportedResultsCurrentPage",
+            totalPagesId: "reportedResultsTotalPages",
+            prevBtnId: "reportedResultsPrevBtn",
+            nextBtnId: "reportedResultsNextBtn",
+            pages: reportedResultsPages,
+            renderPage: buildReportedPage
+        });
+
+        initShowcaseList();
+    </script>
+</body>
+</html>
